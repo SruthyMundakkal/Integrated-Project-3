@@ -10,3 +10,17 @@
 
 ## notes
 App is currently set in its .env.local to point to the local API. Values are taken from the output from running ```supabase start```.
+
+
+## User Logins
+- Super Admin
+  email: superadmin@ecs.com
+  password: superadmin
+
+- Admin #1
+  email: admin-01@ecs.com
+  password: justadmin
+
+- Employee #1
+  email: employee-01@ecs.com
+  password: employee01
