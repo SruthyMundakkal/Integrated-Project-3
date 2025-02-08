@@ -22,6 +22,7 @@ max_rows = 1000
 enabled = false
 
 [db]
+# password: ZqKvn7l2RFh3qeAj
 # Port to use for the local database URL.
 port = 54322
 # Port used by db diff command to initialize the shadow database.
