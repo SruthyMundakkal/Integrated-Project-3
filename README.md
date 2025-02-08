@@ -8,6 +8,9 @@
 3. Pull changes into a migration file: ```supabase db pull```
 4. Implement migration: ```supabase db reset```
 
+### Dump data from local into seed.sql
+- ```supabase db dump --local -f 'supabase/seed.sql --data-only```
+
 ## notes
 App is currently set in its .env.local to point to the local API. Values are taken from the output from running ```supabase start```.
 
