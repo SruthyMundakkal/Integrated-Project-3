@@ -17,8 +17,37 @@ export default async function SuperAdminDashboard() {
 
   return (
     <div >
-      <h1 className="text-2xl font-bold">Super Admin Dashboard</h1>
-      <p>Manage employee claims, categories, and more.</p>
+      
+      <table className="min-w-full table-auto border-collapse border border-gray-200">
+        <thead>
+          <tr className="bg-[#004477] text-left">
+            <th className="px-4 py-2 border-b">No</th>
+            <th className="px-4 py-2 border-b">Full Name</th>
+            <th className="px-4 py-2 border-b">Claim Category</th>
+            <th className="px-4 py-2 border-b">Amount</th>
+            <th className="px-4 py-2 border-b"></th>
+            <th className="px-4 py-2 border-b">Approve</th>
+            <th className="px-4 py-2 border-b">Deny</th>
+          </tr>
+        </thead>
+        <tbody>
+          {/* Example data rows */}
+          <tr className="hover:bg-[#a4bee4]">
+            <td className="px-4 py-2 border-b">1</td>
+            <td className="px-4 py-2 border-b">John Doe</td>
+            <td className="px-4 py-2 border-b">Travel</td>
+            <td className="px-4 py-2 border-b">$1000</td>
+            <td className="px-4 py-2 border-b"></td>
+            <td className="px-4 py-2 border-b text-green-500">
+              <input type="checkbox" className="h-5 w-5 text-green-500" />
+            </td>
+            <td className="px-4 py-2 border-b text-red-500">
+              <input type="checkbox" className="h-5 w-5 text-red-500" />
+            </td>
+          </tr>
+          
+        </tbody>
+      </table>
     </div>
   );
 }
