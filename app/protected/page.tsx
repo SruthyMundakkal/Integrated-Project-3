@@ -16,7 +16,7 @@ export default async function SuperAdminDashboard() {
   }
 
   return (
-    <div>
+    <div >
       <h1 className="text-2xl font-bold">Super Admin Dashboard</h1>
       <p>Manage employee claims, categories, and more.</p>
     </div>
