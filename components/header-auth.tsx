@@ -28,12 +28,13 @@ export default async function AuthButton() {
             <Button
               asChild
               size="sm"
-              variant={"outline"}
+              variant={"default"}
               disabled
               className="opacity-75 cursor-none pointer-events-none"
             >
               <Link href="/sign-in">Sign in</Link>
             </Button>
+            
             <Button
               asChild
               size="sm"
@@ -59,7 +60,7 @@ export default async function AuthButton() {
     </div>
   ) : (
     <div className="flex gap-2">
-      <Button asChild size="sm" variant={"outline"}>
+      <Button asChild size="sm" variant={"default"}>
         <Link href="/sign-in">Sign in</Link>
       </Button>
       <Button asChild size="sm" variant={"default"}>
