@@ -136,6 +136,16 @@ INSERT INTO "public"."claims" ("id", "employee_id", "amount", "submitted_on", "a
 
 
 --
+-- Data for Name: claims; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO "public"."profiles" ("id", "email", "first_name", "last_name", "role") VALUES
+	('41447a0e-7684-4108-9e20-4bf9abb65e3b', 'superadmin@ecs.com', 'Zero', null, 'superadmin'), 
+	('93629b4f-9b79-48d7-b735-6a47efb09889', 'employee-01@ecs.com', 'Lloyd', 'Farnsworth', 'employee'), 
+	('9a8ade8c-2fb5-4a5a-babe-e7db78d46062', 'admin-01@ecs.com', 'Suzie', 'Queue', 'admin');
+
+
+--
 -- Data for Name: buckets; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin
 --
 
