@@ -69,142 +69,88 @@ export default function ClaimForm() {
   if (loading) return <div className="p-4 text-center">Loading...</div>;
   if (error) return <div className="p-4 text-center text-red-500">{error}</div>;
 
-//   // Handle file selection
-//   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-//     if (e.target.files?.length) {
-//       const selectedFile = e.target.files[0];
-//       setFile(selectedFile);
-  
-//       const fileName = Date.now() + "-" + selectedFile.name; // Generate a unique file name
-//       try {
-//         // Upload file to the 'claim-receipts' bucket
-//         const { data, error } = await supabase.storage
-//           .from("claim-receipts") // Updated bucket name
-//           .upload(fileName, selectedFile);
-  
-//         if (error) {
-//           console.error("File upload failed:", error);
-//           alert("File upload failed: " + error.message);
-//           return;
-//         }
-  
-//         // Get the file URL
-//         const fileUrl = data?.path;
-//         console.log("File uploaded successfully. URL:", fileUrl);
-  
-//         // Save the file URL (receipt_url) in your table or claim data
-//         const claimData = {
-//           employee_id: profileId,
-//           category_id: categories.find((category) => category.name === selectedCategory)?.id,
-//           amount: Number(amount),
-//           mileage: selectedCategory === "Travel" ? mileage : null,
-//           start_location: selectedCategory === "Travel" ? startLocation : null,
-//           end_location: selectedCategory === "Travel" ? endLocation : null,
-//           status: "pending",
-//           submitted_by: profileId,
-//           receipt_url: fileUrl, // Store the file URL in the table
-//         };
-  
-//         const { error: claimError } = await supabase.from("claims").insert([claimData]);
-  
-//         if (claimError) {
-//           alert("Failed to submit claim: " + claimError.message);
-//         } else {
-//           alert("Claim submitted successfully!");
-//         }
-//       } catch (error: unknown) {
-//         // Type assertion to error as a known Error object
-//         if (error instanceof Error) {
-//           console.error("Error uploading file:", error.message);
-//           alert("Error uploading file: " + error.message);
-//         } else {
-//           console.error("Unknown error during file upload:", error);
-//           alert("Unknown error during file upload.");
-//         }
-//       }
-//     }
-//   };
 
-  const handleClaimSubmission = async () => {
-    if (!profileId) {
-      alert("Profile not found. Cannot submit claim.");
-      return;
-    }
 
-    if (!selectedCategory) {
-      alert("Please select a claim category.");
-      return;
-    }
-
-    if (!amount || isNaN(Number(amount))) {
-      alert("Please enter a valid amount.");
-      return;
-    }
-
-    const claimData = {
-      employee_id: profileId, // Assuming profile_id maps to employee_id
-      category_id: categories.find((category) => category.name === selectedCategory)?.id,
-      amount: Number(amount),
-      mileage: selectedCategory === "Travel" ? mileage : null,
-      start_location: selectedCategory === "Travel" ? startLocation : null,
-      end_location: selectedCategory === "Travel" ? endLocation : null,
-      status: "pending", // Set the status to 'pending'
-      submitted_by: profileId, // The claim is submitted by the current user
-      receipt_url: receiptUrl || null, // Add the file URL if file is present
-    };
-
-    const { error } = await supabase.from("claims").insert([claimData]);
-
-    if (error) {
-      alert("Failed to submit claim: " + error.message);
-    } else {
-      alert("Claim submitted successfully!");
-    }
-  };
-const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.length) {
-      const selectedFile = e.target.files[0];
-      setFile(selectedFile);
-  
-      try {
-        // Upload file to the claim-receipts bucket
-        const { data, error: uploadError } = await supabase.storage
-          .from("claim-receipts")
-          .upload(`${profileId}/${selectedFile.name}`, selectedFile);
-  
-        if (uploadError) {
-          throw uploadError;
+    const handleClaimSubmission = async () => {
+        if (!profileId) {
+        alert("Profile not found. Cannot submit claim.");
+        return;
         }
-  
-        // Get the URL of the uploaded file
-        const fileUrl = `${supabase.storageUrl}/claim-receipts/${data?.path}`;
-  
-        // Insert claim data with receipt URL
+
+        if (!selectedCategory) {
+        alert("Please select a claim category.");
+        return;
+        }
+
+        if (!amount || isNaN(Number(amount))) {
+        alert("Please enter a valid amount.");
+        return;
+        }
+
         const claimData = {
-          employee_id: profileId,
-          category_id: categories.find((category) => category.name === selectedCategory)?.id,
-          amount: Number(amount),
-          mileage: selectedCategory === "Travel" ? mileage : null,
-          start_location: selectedCategory === "Travel" ? startLocation : null,
-          end_location: selectedCategory === "Travel" ? endLocation : null,
-          status: "pending",  // Set the status to 'pending'
-          submitted_by: profileId,
-          receipt_url: fileUrl,  // Save the file URL in the claim
+        employee_id: profileId, // Assuming profile_id maps to employee_id
+        category_id: categories.find((category) => category.name === selectedCategory)?.id,
+        amount: Number(amount),
+        mileage: selectedCategory === "Travel" ? mileage : null,
+        start_location: selectedCategory === "Travel" ? startLocation : null,
+        end_location: selectedCategory === "Travel" ? endLocation : null,
+        status: "pending", // Set the status to 'pending'
+        submitted_by: profileId, // The claim is submitted by the current user
+        receipt_url: receiptUrl || null, // Add the file URL if file is present
         };
-  
+
         const { error } = await supabase.from("claims").insert([claimData]);
-  
+
         if (error) {
-          alert("Failed to submit claim: " + error.message);
+        alert("Failed to submit claim: " + error.message);
         } else {
-          alert("Claim submitted successfully!");
+        alert("Claim submitted successfully!");
         }
-      } catch (err: any) {
-        console.error("File upload failed:", err.message);
-        alert("File upload failed: " + err.message);
-      }
-    }
-  };
+    };
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files?.length) {
+        const selectedFile = e.target.files[0];
+        setFile(selectedFile);
+    
+        try {
+            // Upload file to the claim-receipts bucket
+            const { data, error: uploadError } = await supabase.storage
+            .from("claim-receipts")
+            .upload(`${profileId}/${selectedFile.name}`, selectedFile);
+    
+            if (uploadError) {
+            throw uploadError;
+            }
+    
+            // Get the URL of the uploaded file
+            const fileUrl = `${supabase.storageUrl}/claim-receipts/${data?.path}`;
+    
+            // Insert claim data with receipt URL
+            const claimData = {
+            employee_id: profileId,
+            category_id: categories.find((category) => category.name === selectedCategory)?.id,
+            amount: Number(amount),
+            mileage: selectedCategory === "Travel" ? mileage : null,
+            start_location: selectedCategory === "Travel" ? startLocation : null,
+            end_location: selectedCategory === "Travel" ? endLocation : null,
+            status: "pending",  // Set the status to 'pending'
+            submitted_by: profileId,
+            receipt_url: fileUrl,  // Save the file URL in the claim
+            };
+    
+            const { error } = await supabase.from("claims").insert([claimData]);
+    
+            if (error) {
+            alert("Failed to submit claim: " + error.message);
+            } else {
+            alert("Claim submitted successfully!");
+            }
+        } catch (err: any) {
+            console.error("File upload failed:", err.message);
+            alert("File upload failed: " + err.message);
+        }
+        }
+    };
 
   return (
     <Card className="w-full max-w-2xl mx-auto p-6">
