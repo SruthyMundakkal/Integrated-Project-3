@@ -29,7 +29,6 @@ export default function EmployeeDashboard({ user }: { user: User }) {
   useEffect(() => {
     async function fetchClaims() {
       try {
-        // Only fetch claims for the current user
         let { data, error } = await supabase
           .from('claims')
           .select('*')
@@ -54,7 +53,7 @@ export default function EmployeeDashboard({ user }: { user: User }) {
   }
 
   if (error) {
-    return <div className="p-4 text-center text-red-500">{error}</div>;
+    return <div className="p-4 text-center text-destructive-foreground">{error}</div>;
   }
 
   return (
