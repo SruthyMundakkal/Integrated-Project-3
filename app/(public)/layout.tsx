@@ -1,9 +1,18 @@
+import Footer from "@/components/common/Footer";
+import Navbar from "@/components/common/Navbar";
+
 export default async function Layout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="max-w-7xl flex flex-col gap-12 items-start">{children}</div>
+    <>
+      <div className="flex flex-col justify-between min-h-screen">
+        <Navbar />
+        {children}
+        <Footer />
+      </div>
+    </>
   );
 }
