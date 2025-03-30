@@ -48,16 +48,13 @@ export default function AdminDashboard({ user }: { user: User }) {
 
   return (
     <div className="p-6 flex flex-col items-center">
-      <h1 className="text-2xl font-bold mb-6">Super Admin Dashboard</h1>
+      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
       <p className="mb-4">Welcome, {user.email}</p>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="bg-muted p-4 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold mb-2 text-center">System Administration</h3>
           <div className="flex flex-col space-y-2">
-            <Link href="/dashboard/superadmin-access/categories" className="text-foreground hover:underline">
-              Manage Categories
-            </Link>
             <Link href="/dashboard/admin-access/users" className="text-foreground hover:underline">
               Manage Users
             </Link>
