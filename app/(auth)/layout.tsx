@@ -18,8 +18,10 @@ export default async function AuthLayout({
   return (
     <>
       <div className="flex flex-col justify-between min-h-screen">
-        <AuthNavbar />
-        {children}
+        <div>
+          <AuthNavbar />
+          {children}
+        </div>
         <Footer />
       </div>
     </>
