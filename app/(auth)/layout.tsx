@@ -17,11 +17,11 @@ export default async function AuthLayout({
   
   return (
     <>
-      <AuthNavbar />
-      <main className="flex-grow p-6">
+      <div className="flex flex-col justify-between min-h-screen">
+        <AuthNavbar />
         {children}
-      </main>
-      <Footer />
+        <Footer />
+      </div>
     </>
   )
 }
