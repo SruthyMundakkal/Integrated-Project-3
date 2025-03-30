@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { SignOutButton } from "../auth/SignOutButton";
 import { ThemeSwitcher } from "../theme-switcher";
 
 export function Navbar() {
@@ -10,7 +9,6 @@ export function Navbar() {
                     <Link href={"/"}>Employee Claims System-ECS</Link>
                 </div>
                 <div className="flex items-center gap-4">
-                    <SignOutButton />
                     <ThemeSwitcher />
                 </div>
             </div>
