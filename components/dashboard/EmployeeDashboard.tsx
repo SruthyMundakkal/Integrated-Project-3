@@ -125,7 +125,10 @@ export default function EmployeeDashboard({ user }: { user: User }) {
         )}
       </div>
       
-      <a href="/dashboard/claims/new/" className="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+      <a 
+        href={`/dashboard/claims/new/?id=${user.id}`} 
+        className="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+      >
         Submit New Claim
       </a>
     </div>
