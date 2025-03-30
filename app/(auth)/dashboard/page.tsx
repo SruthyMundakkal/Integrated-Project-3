@@ -13,22 +13,18 @@ export default async function Dashboard() {
     return redirect('/sign-in')
   }
   
-  // Fetch the user's profile from the profiles table
   const { data: profileData, error } = await supabase
     .from('profiles')
     .select('role')
     .eq('id', user?.id)
     .single()
     
-  // Handle any potential error
   if (error) {
     console.error('Error fetching profile:', error)
   }
   
-  // Get the role from profile data
   const userRole = profileData?.role || 'employee'
   
-  // Render the appropriate dashboard based on role
   switch (userRole.toLowerCase()) {
     case 'admin':
       return <AdminDashboard user={user} />
