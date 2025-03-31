@@ -1,26 +1,10 @@
 "use client";
 
+import { Claim } from "@/lib/definitions";
 import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import ClaimCard from "./ClaimCard";
-
-interface Claim {
-  id: string;
-  employee_id: string;
-  amount: number;
-  submitted_on: string;
-  reviewed_on: string | null;
-  category_id: string | null;
-  status: 'pending' | 'approved' | 'denied';
-  reviewed_by: string | null;
-  start_location: string | null;
-  end_location: string | null;
-  mileage: number | null;
-  receipt_url: string | null;
-  submitted_by: string | null;
-  user_email?: string;
-}
 
 interface ClaimListProps {
   isAdmin?: boolean;
@@ -89,8 +73,8 @@ export default function ClaimList({ isAdmin = false, userId }: ClaimListProps) {
   }
 
   return (
-    <div className="bg-background p-4 rounded-lg w-full">
-      <div className="flex justify-between items-center mb-4">
+    <div className="flex flex-col items-center bg-background p-4 rounded-lg">
+      <div className="flex justify-between items-center w-full mb-4">
         <h2 className="text-lg font-semibold">Claims</h2>
         <Link 
           href="/dashboard/claims/new" 
@@ -100,7 +84,7 @@ export default function ClaimList({ isAdmin = false, userId }: ClaimListProps) {
         </Link>
       </div>
       
-      <div className="mb-4 flex space-x-2">
+      <div className="mb-4 flex space-x-2 justify-start w-full">
         <button
           onClick={() => setFilter("all")}
           className={`px-3 py-1 rounded ${filter === 'all' ? 'bg-secondary text-foreground' : 'bg-muted'}`}
@@ -130,25 +114,25 @@ export default function ClaimList({ isAdmin = false, userId }: ClaimListProps) {
       {filteredClaims.length === 0 ? (
         <p>No claims found matching the selected filter.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full">
+        <div className="">
+          <table className="table-auto md:table-fixed">
             <thead className="bg-gray-100">
               <tr>
-                <th className="py-2 px-4 text-left">Date</th>
-                {isAdmin && <th className="py-2 px-4 text-left">Employee</th>}
-                <th className="py-2 px-4 text-left">Amount</th>
-                <th className="py-2 px-4 text-left">Status</th>
-                <th className="py-2 px-4 text-left"></th>
+                <th className="py-2 px-6 text-left w-[10em]">Date</th>
+                {isAdmin && <th className="py-2 px-6 text-left w-[10em]">Employee</th>}
+                <th className="py-2 px-6 text-left w-[10em]">Amount</th>
+                <th className="py-2 px-6 text-left w-[10em]">Status</th>
+                <th className="py-2 px-6 text-left w-[10em]"></th>
               </tr>
             </thead>
             <tbody>
               {filteredClaims.map((claim) => (
                 <>
                   <tr key={claim.id} className="border-t">
-                    <td className="py-2 px-4">{new Date(claim.submitted_on).toLocaleDateString()}</td>
-                    {isAdmin && <td className="py-2 px-4">{claim.user_email}</td>}
-                    <td className="py-2 px-4">${claim.amount.toFixed(2)}</td>
-                    <td className="py-2 px-4">
+                    <td className="py-2 px-6">{new Date(claim.submitted_on).toLocaleDateString()}</td>
+                    {isAdmin && <td className="py-2 px-6">{claim.profiles?.email}</td>}
+                    <td className="py-2 px-6">${claim.amount.toFixed(2)}</td>
+                    <td className="py-2 px-6">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium 
                         ${claim.status === 'approved' ? 'bg-green-100 text-green-800' : 
                           claim.status === 'denied' ? 'bg-red-100 text-red-800' : 
@@ -156,7 +140,7 @@ export default function ClaimList({ isAdmin = false, userId }: ClaimListProps) {
                         {claim.status}
                       </span>
                     </td>
-                    <td className="py-2 px-4">
+                    <td className="py-2 px-6">
                       <button
                         onClick={() => toggleClaimExpansion(claim.id)}
                         className="text-foreground hover:underline focus:outline-none"
