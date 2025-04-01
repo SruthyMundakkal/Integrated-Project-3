@@ -5,19 +5,22 @@ import { createClient } from "@/utils/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 
-interface ClaimCardProps {
-  claimId: string;
-  user: User;
-  isAdmin?: boolean;
-  isInlineView?: boolean; // New prop to control rendering style
-}
+const supabase = createClient();
 
-export default function ClaimCard({ claimId, user, isAdmin = false, isInlineView = false }: ClaimCardProps) {
-  const supabase = createClient();
+export default function ClaimCard({ claimId, isAdmin = false, isInlineView = false }: { claimId: string; isAdmin?: boolean; isInlineView?: boolean; }) {
   const [claim, setClaim] = useState<Claim | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    async function fetchUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) setUser(user);
+    }
+    fetchUser();
+  }, []);
   
   useEffect(() => {
     async function fetchClaimDetails() {
@@ -44,33 +47,41 @@ export default function ClaimCard({ claimId, user, isAdmin = false, isInlineView
     }
     
     fetchClaimDetails();
-  }, [claimId, supabase]);
+  }, [claimId]);
 
   const handleUpdateStatus = async (newStatus: 'approved' | 'denied') => {
-    if (!claim) return;
+    if (!claim || !claim.id) {
+      setError("Invalid claim data. Cannot update.");
+      return;
+    }
+    if (!user || !user.id) {
+      console.error("User not authenticated or ID missing.");
+      return;
+    }
     
     try {
       setUpdating(true);
-      
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('claims')
         .update({ 
           status: newStatus,
           reviewed_on: new Date().toISOString(),
-          reviewed_by: user.id,
+          reviewed_by: user.id || null,
         })
-        .eq('id', claim.id);
+        .eq('id', claim.id)
+        .select();
+
+      if (error) {
+        console.error('Update error:', error);
+        setError(`Update failed: ${error.message}`);
+      }
       
-      if (error) throw error;
-      
-      // Refresh claim data
       setClaim({
         ...claim,
         status: newStatus,
         reviewed_on: new Date().toISOString(),
         reviewed_by: user.id,
       });
-      
     } catch (err) {
       console.error('Error updating claim status:', err);
       setError('Failed to update claim status');
@@ -92,7 +103,7 @@ export default function ClaimCard({ claimId, user, isAdmin = false, isInlineView
   }
 
   const canReview = isAdmin && claim.status === 'pending';
-  const isOwnClaim = user.id === claim.employee_id;
+  const isOwnClaim = user?.id === claim.employee_id;
 
   const containerClass = isInlineView 
     ? "bg-transparent p-0 max-w-none mx-0" 
