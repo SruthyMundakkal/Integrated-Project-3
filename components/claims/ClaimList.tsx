@@ -156,7 +156,7 @@ export default function ClaimList({ isAdmin = false, userId }: ClaimListProps) {
                         <div className="p-4 bg-gray-50">
                           <ClaimCard 
                             claimId={claim.id} 
-                            user={{ id: userId || '' } as any} 
+                            // user={{ id: userId || '' } as any} 
                             isAdmin={isAdmin} 
                             isInlineView={true} 
                           />
