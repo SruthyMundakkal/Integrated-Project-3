@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import ClaimCard from "./ClaimCard";
+import React from "react";
 
 interface ClaimListProps {
   isAdmin?: boolean;
@@ -126,8 +127,8 @@ export default function ClaimList({ isAdmin = false, userId }: ClaimListProps) {
               </tr>
             </thead>
             <tbody>
-              {filteredClaims.map((claim) => (
-                <>
+            {filteredClaims.map((claim) => (
+              <React.Fragment key={claim.id}>
                   <tr key={claim.id} className="border-t">
                     <td className="py-2 px-6">{new Date(claim.submitted_on).toLocaleDateString()}</td>
                     {isAdmin && <td className="py-2 px-6">{claim.profiles?.email}</td>}
@@ -163,7 +164,7 @@ export default function ClaimList({ isAdmin = false, userId }: ClaimListProps) {
                       </td>
                     </tr>
                   )}
-                </>
+                </React.Fragment>
               ))}
             </tbody>
           </table>
