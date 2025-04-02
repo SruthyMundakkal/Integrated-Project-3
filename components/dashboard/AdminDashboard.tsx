@@ -75,7 +75,6 @@ export default function AdminDashboard({ user }: { user: User }) {
       
       <div className="margin-auto">
         <ClaimList isAdmin={true} />
-        <ClaimForm/>
       </div>
     </div>
   );

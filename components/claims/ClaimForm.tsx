@@ -197,7 +197,8 @@ export default function ClaimForm() {
 
         {/* Amount Field */}
         <div className="flex items-center space-x-4">
-          <Label htmlFor="amount" className="w-1/3">Amount</Label>
+          <Label htmlFor="amount" className="w-1/3">Amount $
+          </Label>
           <Input id="amount" type="number" placeholder="0.00" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-2/3" />
         </div>
 
