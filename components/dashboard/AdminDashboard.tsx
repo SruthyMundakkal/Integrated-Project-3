@@ -1,6 +1,7 @@
 "use client";
 
 import ClaimList from "@/components/claims/ClaimList";
+import ClaimForm from "@/components/claims//ClaimForm";
 import { Claim } from "@/lib/definitions";
 import { createClient } from "@/utils/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -74,6 +75,7 @@ export default function AdminDashboard({ user }: { user: User }) {
       
       <div className="margin-auto">
         <ClaimList isAdmin={true} />
+        <ClaimForm/>
       </div>
     </div>
   );

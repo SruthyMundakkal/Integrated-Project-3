@@ -3,11 +3,14 @@
 import { Claim } from "@/lib/definitions"; // Adjust the import path as necessary
 import { createClient } from "@/utils/supabase/client";
 import { User } from "@supabase/supabase-js";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const supabase = createClient();
 
+
 export default function ClaimCard({ claimId, isAdmin = false, isInlineView = false }: { claimId: string; isAdmin?: boolean; isInlineView?: boolean; }) {
+  const router = useRouter();
   const [claim, setClaim] = useState<Claim | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -75,7 +78,10 @@ export default function ClaimCard({ claimId, isAdmin = false, isInlineView = fal
         console.error('Update error:', error);
         setError(`Update failed: ${error.message}`);
       }
-      
+      else {
+        router.refresh(); // Refresh the page after update
+      }
+
       setClaim({
         ...claim,
         status: newStatus,

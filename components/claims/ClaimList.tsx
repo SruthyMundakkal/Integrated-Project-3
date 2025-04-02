@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import ClaimCard from "./ClaimCard";
+import ClaimForm from "./ClaimForm";
 import React from "react";
 
 interface ClaimListProps {
@@ -160,6 +161,7 @@ export default function ClaimList({ isAdmin = false, userId }: ClaimListProps) {
                             isAdmin={isAdmin} 
                             isInlineView={true} 
                           />
+                          
                         </div>
                       </td>
                     </tr>
