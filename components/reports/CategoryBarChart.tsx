@@ -1,91 +1,115 @@
-// TODO: Include total amount claimed per category in a bar graph format
-// TODO: Cover data ranges of the last six months and include every category
 // TODO: Report is generated on the page and be exportable to CSV format
 // TODO: Available to admins and super admins
 // TODO: Saved in database
 
 "use client"
 
-import { TrendingUp } from "lucide-react"
-import { Bar, BarChart, CartesianGrid, LabelList, XAxis } from "recharts"
+import { Claim } from "@/lib/definitions";
+import { User } from "@supabase/supabase-js";
+import { useMemo } from "react";
+import { Bar, BarChart, CartesianGrid, LabelList, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
-import {
-    ChartConfig,
-    ChartContainer,
-    ChartTooltip,
-    ChartTooltipContent,
-} from "@/components/ui/chart"
-const chartData = [
-  { month: "January", desktop: 186 },
-  { month: "February", desktop: 305 },
-  { month: "March", desktop: 237 },
-  { month: "April", desktop: 73 },
-  { month: "May", desktop: 209 },
-  { month: "June", desktop: 214 },
-]
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "hsl(var(--chart-1))",
-  },
-} satisfies ChartConfig
+interface ReportProps {
+  isAdmin: boolean;
+  user: User;
+  claims: Array<Claim>;
+}
 
-export default function CategoryBarChart() {
+export default function CategoryBarChart({ claims = [] }: ReportProps) {
+
+  const { chartData, dateRange } = useMemo(() => {
+
+    const today = new Date();
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(today.getMonth() - 5);
+    
+    const recentClaims = claims.filter(claim => {
+      const claimDate = new Date(claim.submitted_on);
+      return claimDate >= sixMonthsAgo && claimDate <= today;
+    });
+    
+    const categoryTotals: Record<string, number> = {};
+    
+    recentClaims.forEach(claim => {
+      if (claim.categories?.name && claim.amount) {
+        const categoryName = claim.categories.name;
+        categoryTotals[categoryName] = (categoryTotals[categoryName] || 0) + claim.amount;
+      }
+    });
+
+    const formattedData = Object.entries(categoryTotals).map(([category, amount]) => ({
+      category,
+      amount: parseFloat(amount.toFixed(2))
+    }));
+    
+    formattedData.sort((a, b) => b.amount - a.amount);
+    
+    const startMonth = sixMonthsAgo.toLocaleString('default', { month: 'long' });
+    const endMonth = today.toLocaleString('default', { month: 'long' });
+    const dateRangeText = `${startMonth} - ${endMonth} ${today.getFullYear()}`;
+    
+    return {
+      chartData: formattedData,
+      dateRange: dateRangeText
+    };
+  }, [claims]);
+  
+  const barColor = "#3498db";
+  
   return (
-    <Card>
+    <Card className="bg-background p-4 rounded-lg mt-6">
       <CardHeader>
-        <CardTitle>Bar Chart - Label</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardTitle>Total Claim Amounts per Category</CardTitle>
+        <CardDescription>{dateRange}</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
-          <BarChart
-            accessibilityLayer
-            data={chartData}
-            margin={{
-              top: 20,
-            }}
-          >
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="month"
-              tickLine={false}
-              tickMargin={10}
-              axisLine={false}
-              tickFormatter={(value) => value.slice(0, 3)}
-            />
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel />}
-            />
-            <Bar dataKey="desktop" fill="var(--color-desktop)" radius={8}>
-              <LabelList
-                position="top"
-                offset={12}
-                className="fill-foreground"
-                fontSize={12}
+        <div className="h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart 
+              data={chartData} 
+              margin={{ top: 20, right: 30, left: 20, bottom: 70 }} 
+              layout="vertical"
+            >
+              <CartesianGrid strokeDasharray={"3 3"} horizontal={false} vertical={true} />
+              <XAxis type="number" tickFormatter={(value) => `$${value}`} />
+              <YAxis 
+                type="category" 
+                dataKey="category" 
+                width={120}
+                tick={{ fontSize: 12 }}
               />
-            </Bar>
-          </BarChart>
-        </ChartContainer>
+              <Tooltip formatter={(value) => [`$${value}`, 'Amount']} />
+              <Legend />
+              <Bar 
+                dataKey="amount" 
+                fill={barColor} 
+                name="Total Amount" 
+                radius={[0, 4, 4, 0]}
+              >
+                <LabelList 
+                  dataKey="amount" 
+                  position="right" 
+                  formatter={(value: number) => `$${value}`}
+                />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 font-medium leading-none">
-          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-        </div>
         <div className="leading-none text-muted-foreground">
-          Showing total visitors for the last 6 months
+          Showing category totals from the last 6 months
         </div>
       </CardFooter>
     </Card>
-  )
+  );
 }
