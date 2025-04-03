@@ -18,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="bg-background text-foreground flex flex-col">
+      <body className="bg-background text-foreground flex flex-col overflow-scroll">
         <Providers>
           <main className="flex-grow">
             {children}
