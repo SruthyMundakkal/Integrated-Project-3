@@ -1,11 +1,11 @@
 "use client";
 
-import ClaimList from "@/components/claims/ClaimList";
 import { Claim } from "@/lib/definitions";
 import { createClient } from "@/utils/supabase/client";
 import { User } from "@supabase/supabase-js";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import ClaimList from "../claims/ClaimList";
 import CategoryBarChart from "../reports/CategoryBarChart";
 
 export default function SuperAdminDashboard({ user, isAdmin }: { user: User, isAdmin: boolean }) {
@@ -14,7 +14,7 @@ export default function SuperAdminDashboard({ user, isAdmin }: { user: User, isA
   const [claims, setClaims] = useState<Claim[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedComponent, setSelectedComponent] = useState<JSX.Element>(<ClaimList isAdmin />);
+  const [currentView, setCurrentView] = useState<"claims" | "report">("claims");
 
   useEffect(() => {
     async function fetchClaims() {
@@ -23,9 +23,12 @@ export default function SuperAdminDashboard({ user, isAdmin }: { user: User, isA
           .from('claims')
           .select(`
             *,
-            profiles:employee_id (email)
+            profiles:employee_id (email),
+            categories:category_id (name)
           `)
           .order('submitted_on', { ascending: false });
+          console.log('Claims data from API:', data);
+          console.log('Error if any:', error);
           
         if (error) throw error;
         
@@ -39,7 +42,7 @@ export default function SuperAdminDashboard({ user, isAdmin }: { user: User, isA
     }
     
     fetchClaims();
-  }, [supabase, user.id]);
+  }, [user.id, isAdmin]);
   
   if (loading) {
     return <div className="p-4 text-center">Loading dashboard...</div>;
@@ -50,11 +53,11 @@ export default function SuperAdminDashboard({ user, isAdmin }: { user: User, isA
   }
 
   const showClaimList = () => {
-    setSelectedComponent(<ClaimList isAdmin />);
+    setCurrentView("claims");
   }
   
   const showReport = () => {
-    setSelectedComponent(<CategoryBarChart />);
+    setCurrentView("report");
   }
 
   return (
@@ -95,8 +98,21 @@ export default function SuperAdminDashboard({ user, isAdmin }: { user: User, isA
         View Category Reports
       </button>
       
-      <div className="margin-auto">
-        {selectedComponent}
+      <div className="w-full max-w-4xl">
+        {currentView === 'claims' && (
+          <ClaimList 
+            isAdmin={isAdmin}
+            user={user}
+            claims={claims}
+          />
+        )}
+        {currentView === 'report' && (
+          <CategoryBarChart
+            isAdmin={isAdmin}
+            user={user}
+            claims={claims}
+          />
+        )} 
       </div>
     </div>
   );
