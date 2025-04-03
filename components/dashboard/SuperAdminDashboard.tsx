@@ -8,9 +8,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import CategoryBarChart from "../reports/CategoryBarChart";
 
-export default function SuperAdminDashboard({ user }: { user: User }) {
-
-  const isAdmin = true;
+export default function SuperAdminDashboard({ user, isAdmin }: { user: User, isAdmin: boolean }) {
   
   const supabase = createClient();
   const [claims, setClaims] = useState<Claim[]>([]);
@@ -74,9 +72,7 @@ export default function SuperAdminDashboard({ user }: { user: User }) {
             <Link href="/dashboard/admin-access/users" className="text-foreground hover:underline">
               Manage Users
             </Link>
-            <button onClick={showReport} className="text-foreground hover:underline">
-              View Reports
-            </button>
+            
           </div>
         </div>
         
@@ -90,6 +86,14 @@ export default function SuperAdminDashboard({ user }: { user: User }) {
           </div>
         </div>
       </div>
+
+      <button onClick={showClaimList} className="text-foreground hover:underline">
+        View Claims List
+      </button>
+      
+      <button onClick={showReport} className="text-foreground hover:underline">
+        View Category Reports
+      </button>
       
       <div className="margin-auto">
         {selectedComponent}
