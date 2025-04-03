@@ -6,12 +6,17 @@ import { createClient } from "@/utils/supabase/client";
 import { User } from "@supabase/supabase-js";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import CategoryBarChart from "../reports/CategoryBarChart";
 
 export default function SuperAdminDashboard({ user }: { user: User }) {
+
+  const isAdmin = true;
+  
   const supabase = createClient();
   const [claims, setClaims] = useState<Claim[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedComponent, setSelectedComponent] = useState<JSX.Element>(<ClaimList isAdmin />);
 
   useEffect(() => {
     async function fetchClaims() {
@@ -37,13 +42,21 @@ export default function SuperAdminDashboard({ user }: { user: User }) {
     
     fetchClaims();
   }, [supabase, user.id]);
-
+  
   if (loading) {
     return <div className="p-4 text-center">Loading dashboard...</div>;
   }
 
   if (error) {
     return <div className="p-4 text-center text-destructive-foreground">{error}</div>;
+  }
+
+  const showClaimList = () => {
+    setSelectedComponent(<ClaimList isAdmin />);
+  }
+  
+  const showReport = () => {
+    setSelectedComponent(<CategoryBarChart />);
   }
 
   return (
@@ -61,10 +74,13 @@ export default function SuperAdminDashboard({ user }: { user: User }) {
             <Link href="/dashboard/admin-access/users" className="text-foreground hover:underline">
               Manage Users
             </Link>
+            <button onClick={showReport} className="text-foreground hover:underline">
+              View Reports
+            </button>
           </div>
         </div>
         
-        <div className="bg-muted p-4 rounded-lg shadow-md">
+        <div className="bg-muted p-4 rounded-lg shadok-md">
           <h3 className="text-lg font-semibold mb-2 text-center">Claims Overview</h3>
           <div className="grid grid-cols-2 gap-2">
             <p>Total Claims: {claims.length}</p>
@@ -76,7 +92,7 @@ export default function SuperAdminDashboard({ user }: { user: User }) {
       </div>
       
       <div className="margin-auto">
-        <ClaimList isAdmin={true} />
+        {selectedComponent}
       </div>
     </div>
   );
