@@ -1,6 +1,6 @@
 "use client"
 
-import { fetchReportData } from "@/lib/actions";
+import { fetchEmployees, fetchReportData } from "@/lib/actions";
 import { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -17,7 +17,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { ReportData } from "@/lib/definitions";
+import { Profile, ReportData } from "@/lib/definitions";
 import { createClient } from "@/utils/supabase/client";
 
 interface ReportProps {
@@ -34,18 +34,19 @@ interface StorageFileObject {
   metadata: Record<string, any> | null;
 }
 
-function generateCsv(data: ReportData[], dateRange: string): string {
+function generateCsv(data: ReportData[], dateRange: string, employeeName?: string): string {
     if (!data || data.length === 0) {
         return '';
     }
     const dateRangeRow = `"Report Date Range:","${dateRange.replace(/"/g, '""')}"`;
+    const employeeRow = `"Employee Filter:","${employeeName ? employeeName.replace(/"/g, '""') : 'All Employees'}"`;
     const headers = ['Category Name', 'Total Amount'];
     const headerRow = headers.map(h => `"${h.replace(/"/g, '""')}"`).join(',');
     const dataRows = data.map(item => [
         `"${item.category_name.replace(/"/g, '""')}"`,
         item.total_amount.toFixed(2)
     ].join(','));
-    return [dateRangeRow, headerRow, ...dataRows].join('\n');
+    return [dateRangeRow, employeeRow, headerRow, ...dataRows].join('\n');
 }
 
 function downloadFile(content: string | Blob, filename: string, type = 'text/csv;charset=utf-8;') {
@@ -66,6 +67,7 @@ function downloadFile(content: string | Blob, filename: string, type = 'text/csv
 }
 
 const REPORTS_STORAGE_PATH = 'private/claims-reports/';
+const ALL_EMPLOYEES_VALUE = "all";
 
 export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
   const [reportData, setReportData] = useState<ReportData[]>([]);
@@ -82,6 +84,12 @@ export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
   const [fetchListError, setFetchListError] = useState<string | null>(null);
   const [isDownloadingSelected, setIsDownloadingSelected] = useState(false);
   const [downloadSelectedError, setDownloadSelectedError] = useState<string | null>(null);
+
+  const [employees, setEmployees] = useState<Profile[]>([]);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>(ALL_EMPLOYEES_VALUE);
+  const [loadingEmployees, setLoadingEmployees] = useState(true);
+  const [fetchEmployeesError, setFetchEmployeesError] = useState(false);
+
 
   const supabase = createClient();
 
@@ -100,34 +108,25 @@ export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
         const { data: files, error } = await supabase.storage
           .from('reports')
           .list(REPORTS_STORAGE_PATH, {
-            limit: 100,
-            offset: 0,
-            sortBy: { column: 'updated_at', order: 'desc' },
+            limit: 100, offset: 0, sortBy: { column: 'updated_at', order: 'desc' },
           });
-
         if (error) throw error;
-
-        const validFiles = files?.filter(file => file.name !== '.emptyFolderPlaceholder') || [];
+        const validFiles = files?.filter(f => f.name !== '.emptyFolderPlaceholder') || [];
         setAvailableReports(validFiles);
-
-        if (validFiles.length > 0) {
-          setSelectedReportName(validFiles[0].name);
-        }
-
+        if (validFiles.length > 0) setSelectedReportName(validFiles[0].name);
       } catch (err: any) {
         console.error("Error fetching available reports:", err);
         setFetchListError(`Failed to load report list: ${err.message}`);
       } finally {
         setIsLoadingList(false);
       }
-    }
+  }
 
-  useEffect(() => {
-    async function loadReportData() {
+   async function loadReportData(employeeFilterId: string | null) {
       setLoadingLiveData(true);
       setFetchLiveError(false);
       try {
-        const data = await fetchReportData();
+        const data = await fetchReportData(employeeFilterId);
         setReportData(data || []);
       } catch (err) {
         console.error("Error fetching live report data:", err);
@@ -135,46 +134,60 @@ export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
       } finally {
         setLoadingLiveData(false);
       }
-    }
-    loadReportData();
+  }
+
+  async function loadEmployees() {
+      setLoadingEmployees(true);
+      setFetchEmployeesError(false);
+      try {
+          const data = await fetchEmployees();
+          setEmployees(data || []);
+      } catch(err) {
+          console.error("Error fetching employees:", err);
+          setFetchEmployeesError(true);
+      } finally {
+          setLoadingEmployees(false);
+      }
+  }
+
+  useEffect(() => {
+    loadEmployees();
+    loadAvailableReports();
   }, []);
 
   useEffect(() => {
-    loadAvailableReports();
-  }, []);
+      const filterId = selectedEmployeeId === ALL_EMPLOYEES_VALUE ? null : selectedEmployeeId;
+      loadReportData(filterId);
+  }, [selectedEmployeeId]);
 
   const handleUploadToStorage = async () => {
     setUploadMessage(null);
     setUploadError(null);
     setIsUploading(true);
 
-    const csvString = generateCsv(reportData, dateRange);
+    const currentEmployee = employees.find(e => e.id === selectedEmployeeId);
+    const employeeName = currentEmployee ? `${currentEmployee.first_name} ${currentEmployee.last_name ?? ''}`.trim() : undefined;
+    const csvString = generateCsv(reportData, dateRange, employeeName);
+
     if (!csvString) {
       alert('No live data available to upload.');
-      setIsUploading(false);
-      return;
+      setIsUploading(false); return;
     }
 
     const timestamp = new Date().toISOString().split('T')[0];
-    const filename = `claims-report-${timestamp}.csv`;
+    const filenameSuffix = selectedEmployeeId === ALL_EMPLOYEES_VALUE ? '' : `-${selectedEmployeeId.substring(0, 8)}`;
+    const filename = `claims-report-${timestamp}${filenameSuffix}.csv`;
     const filePath = `${REPORTS_STORAGE_PATH}${filename}`;
-
     const file = new File([csvString], filename, { type: 'text/csv' });
 
     try {
       const { data, error } = await supabase.storage
         .from('reports')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true
-        });
-
+        .upload(filePath, file, { cacheControl: '3600', upsert: true });
       if (error) throw error;
-
       console.log('Upload successful:', data);
       setUploadMessage(`Report successfully uploaded: ${filename}`);
        await loadAvailableReports();
-
     } catch (error: any) {
       console.error('Error uploading to storage:', error);
       setUploadError(`Upload failed: ${error.message}`);
@@ -183,11 +196,15 @@ export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
     }
   };
 
-   const handleDownloadLiveDataCsv = () => {
-    const csvString = generateCsv(reportData, dateRange);
+  const handleDownloadLiveDataCsv = () => {
+    const currentEmployee = employees.find(e => e.id === selectedEmployeeId);
+    const employeeName = currentEmployee ? `${currentEmployee.first_name} ${currentEmployee.last_name ?? ''}`.trim() : undefined;
+    const csvString = generateCsv(reportData, dateRange, employeeName);
+
     if (csvString) {
       const timestamp = new Date().toISOString().split('T')[0];
-      downloadFile(csvString, `live-claims-report-${timestamp}.csv`);
+      const filenameSuffix = selectedEmployeeId === ALL_EMPLOYEES_VALUE ? '' : `-${selectedEmployeeId.substring(0, 8)}`;
+      downloadFile(csvString, `live-claims-report-${timestamp}${filenameSuffix}.csv`);
     } else {
       alert('No live data available to download.');
     }
@@ -195,24 +212,16 @@ export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
 
   const handleDownloadSelectedReport = async () => {
     if (!selectedReportName) {
-      alert("Please select a report to download.");
-      return;
+      alert("Please select a report to download."); return;
     }
     setIsDownloadingSelected(true);
     setDownloadSelectedError(null);
-
     const fullPath = `${REPORTS_STORAGE_PATH}${selectedReportName}`;
-
     try {
-       const { data: blob, error } = await supabase.storage
-          .from('reports')
-          .download(fullPath);
-
+       const { data: blob, error } = await supabase.storage.from('reports').download(fullPath);
        if (error) throw error;
        if (!blob) throw new Error("Downloaded file data is empty.");
-
        downloadFile(blob, selectedReportName, blob.type);
-
     } catch (error: any) {
         console.error('Error downloading selected report:', error);
         setDownloadSelectedError(`Download failed: ${error.message}`);
@@ -221,6 +230,12 @@ export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
     }
   };
 
+  const selectedEmployeeName = selectedEmployeeId === ALL_EMPLOYEES_VALUE
+    ? "All Employees"
+    : employees.find(e => e.id === selectedEmployeeId)?.first_name + ' ' + (employees.find(e => e.id === selectedEmployeeId)?.last_name ?? '');
+  const cardTitle = `Claim Totals per Category (Last 6 Months)`;
+  const cardDescription = `Filtering by: ${selectedEmployeeName}. Date Range: ${dateRange}`;
+
   const showChart = !loadingLiveData && !fetchLiveError && reportData.length > 0;
   const showNoLiveDataMessage = !loadingLiveData && !fetchLiveError && reportData.length === 0;
   const showLiveError = !loadingLiveData && fetchLiveError;
@@ -228,13 +243,36 @@ export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
   return (
     <Card className="bg-background p-4 rounded-lg mt-6 w-full">
       <CardHeader>
-        <CardTitle>Live Claim Totals per Category (Last 6 Months)</CardTitle>
-        <CardDescription>{dateRange}</CardDescription>
+        <CardTitle>{cardTitle}</CardTitle>
+        <div className="pt-2">
+            <Label htmlFor="employee-filter-select" className="text-sm font-medium">Filter by Employee:</Label>
+            {loadingEmployees ? <p className="text-sm text-muted-foreground">Loading employees...</p> :
+             fetchEmployeesError ? <p className="text-sm text-red-600">Error loading employees.</p> : (
+                <Select
+                    value={selectedEmployeeId}
+                    onValueChange={(value) => setSelectedEmployeeId(value)}
+                    disabled={loadingEmployees || employees.length === 0}
+                >
+                    <SelectTrigger id="employee-filter-select" className="w-full sm:w-[280px] mt-1">
+                    <SelectValue placeholder="Select Employee" />
+                    </SelectTrigger>
+                    <SelectContent>
+                    <SelectItem value={ALL_EMPLOYEES_VALUE}>All Employees</SelectItem>
+                    {employees.map((employee) => (
+                        <SelectItem key={employee.id} value={employee.id}>
+                            {employee.first_name} {employee.last_name ?? ''} ({employee.email})
+                        </SelectItem>
+                    ))}
+                    </SelectContent>
+                </Select>
+            )}
+        </div>
+        <CardDescription className="pt-2">{cardDescription}</CardDescription>
       </CardHeader>
       <CardContent>
-        {loadingLiveData && <p className="text-center">Loading live data chart...</p>}
-        {showLiveError && <p className="text-center text-red-600">Error loading live data.</p>}
-        {showNoLiveDataMessage && <p className="text-center text-muted-foreground">No live claim data found for the last 6 months.</p>}
+        {loadingLiveData && <p className="text-center">Loading filtered report data...</p>}
+        {showLiveError && <p className="text-center text-red-600">Error loading report data.</p>}
+        {showNoLiveDataMessage && <p className="text-center text-muted-foreground">No claim data found for the selected filter in the last 6 months.</p>}
         {showChart && (
            <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -249,18 +287,11 @@ export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
                       interval={0}
                   />
                   <Tooltip formatter={(value: number) => [`$${Number(value).toFixed(2)}`, 'Amount']} />
-                  <Bar
-                      dataKey="total_amount"
-                      fill="#3498db"
-                      name="Total Amount"
-                      radius={[0, 4, 4, 0]}
-                  >
+                  <Bar dataKey="total_amount" fill="#3498db" name="Total Amount" radius={[0, 4, 4, 0]}>
                       <LabelList
-                          dataKey="total_amount"
-                          position="right"
+                          dataKey="total_amount" position="right"
                           formatter={(value: number) => `$${Number(value).toFixed(2)}`}
-                          style={{ fill: 'black', fontSize: 12 }}
-                      />
+                          style={{ fill: 'black', fontSize: 12 }} />
                   </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -276,19 +307,15 @@ export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
           <Button
             onClick={handleDownloadLiveDataCsv}
             disabled={reportData.length === 0 || loadingLiveData}
-            variant="default"
-            size="sm"
-            title="Download the current live data shown in the chart"
-          >
+            variant="default" size="sm"
+            title="Download the current filtered live data shown in the chart">
             Download Live CSV
           </Button>
           <Button
             onClick={handleUploadToStorage}
             disabled={reportData.length === 0 || isUploading || loadingLiveData}
-            variant="default"
-            size="sm"
-            title="Save the current live data to storage (overwrites if same day)"
-          >
+            variant="default" size="sm"
+            title="Save the current filtered live data to storage">
             {isUploading ? 'Saving...' : 'Save Live Report'}
           </Button>
         </div>
@@ -300,17 +327,15 @@ export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
         <h3 className="text-lg font-semibold mb-4 text-center sm:text-left">Historical Reports</h3>
         {isLoadingList && <p className="text-center sm:text-left">Loading report list...</p>}
         {fetchListError && <p className="text-red-600 text-center sm:text-left">{fetchListError}</p>}
-
         {!isLoadingList && !fetchListError && (
           availableReports.length > 0 ? (
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
               <div className="flex-grow w-full sm:w-auto">
-                 <Label htmlFor="report-select" className="mb-1 block text-sm font-medium text-gray-700">Select Report:</Label>
+                 <Label htmlFor="report-select" className="mb-1 block text-sm font-medium">Select Report:</Label>
                  <Select
                     value={selectedReportName ?? ''}
                     onValueChange={(value) => setSelectedReportName(value)}
-                    disabled={availableReports.length === 0}
-                  >
+                    disabled={availableReports.length === 0}>
                     <SelectTrigger id="report-select" className="w-full">
                       <SelectValue placeholder="Select a saved report" />
                     </SelectTrigger>
@@ -327,10 +352,7 @@ export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
                 <Button
                     onClick={handleDownloadSelectedReport}
                     disabled={!selectedReportName || isDownloadingSelected}
-                    variant="default"
-                    size="sm"
-                    className="w-full"
-                >
+                    variant="default" size="sm" className="w-full">
                     {isDownloadingSelected ? 'Downloading...' : 'Download Selected'}
                 </Button>
               </div>
