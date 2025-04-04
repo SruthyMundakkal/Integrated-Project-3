@@ -34,3 +34,9 @@ export interface User {
   last_name?: string;
   role: 'employee' | 'admin' | 'super_admin';
 }
+
+export interface ReportData {
+  category_id: string;
+  category_name: string;
+  total_amount: number;
+}

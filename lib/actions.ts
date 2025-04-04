@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { encodedRedirect } from "@/utils/utils";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { ReportData } from "./definitions";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
@@ -132,3 +133,40 @@ export const signOutAction = async () => {
   await supabase.auth.signOut();
   return redirect("/sign-in");
 };
+
+export const fetchAllClaimsData = async () => {
+  const supabase = await createClient();
+  
+  let { data: claims, error } = await supabase
+    .from('claims')
+    .select(`
+      *,
+      profiles:employee_id (email),
+      categories:category_id (name)
+      `)
+      .order('submitted_on', { ascending: false });
+
+  return claims;
+}
+
+export const fetchReportData = async (): Promise<ReportData[] | null> => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.rpc('get_claim_category_totals_last_6_months');
+
+  if (error) {
+    console.error('Error fetching report data:', error);
+    return null;
+  }
+
+  if (data && Array.isArray(data)) {
+    return data.map(claim => ({
+      ...claim,
+      total_amount: typeof claim.total_amount === 'string'
+        ? parseFloat(claim.total_amount)
+        : claim.total_amount,
+    }));
+  }
+
+  return [];
+}

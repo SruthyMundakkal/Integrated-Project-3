@@ -1,5 +1,6 @@
 "use client";
 
+import { fetchAllClaimsData } from "@/lib/actions";
 import { Claim } from "@/lib/definitions";
 import { createClient } from "@/utils/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -19,20 +20,9 @@ export default function SuperAdminDashboard({ user, isAdmin }: { user: User, isA
   useEffect(() => {
     async function fetchClaims() {
       try {
-        let { data, error } = await supabase
-          .from('claims')
-          .select(`
-            *,
-            profiles:employee_id (email),
-            categories:category_id (name)
-          `)
-          .order('submitted_on', { ascending: false });
-          console.log('Claims data from API:', data);
-          console.log('Error if any:', error);
-          
-        if (error) throw error;
+        const allClaimsData = await fetchAllClaimsData(); // Call the function and await its result
         
-        setClaims(data || []);
+        setClaims(allClaimsData || []);
       } catch (err) {
         console.error('Error fetching claims:', err);
         setError('Failed to load claims');
@@ -79,7 +69,7 @@ export default function SuperAdminDashboard({ user, isAdmin }: { user: User, isA
           </div>
         </div>
         
-        <div className="bg-muted p-4 rounded-lg shadok-md">
+        <div className="bg-muted p-4 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold mb-2 text-center">Claims Overview</h3>
           <div className="grid grid-cols-2 gap-2">
             <p>Total Claims: {claims.length}</p>
@@ -110,7 +100,6 @@ export default function SuperAdminDashboard({ user, isAdmin }: { user: User, isA
           <CategoryBarChart
             isAdmin={isAdmin}
             user={user}
-            claims={claims}
           />
         )} 
       </div>
