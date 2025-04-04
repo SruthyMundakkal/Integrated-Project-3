@@ -4,7 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { encodedRedirect } from "@/utils/utils";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { ReportData } from "./definitions";
+import { Profile, ReportData } from "./definitions";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
@@ -149,13 +149,18 @@ export const fetchAllClaimsData = async () => {
   return claims;
 }
 
-export const fetchReportData = async (): Promise<ReportData[] | null> => {
+export const fetchReportData = async (
+    employeeId: string | null = null
+): Promise<ReportData[] | null> => {
   const supabase = await createClient();
 
-  const { data, error } = await supabase.rpc('get_claim_category_totals_last_6_months');
+  const { data, error } = await supabase.rpc(
+    'get_claim_category_totals_last_6_months',
+    { p_employee_id: employeeId }
+  );
 
   if (error) {
-    console.error('Error fetching report data:', error);
+    console.error('Error fetching report data:', error.message);
     return null;
   }
 
@@ -169,4 +174,21 @@ export const fetchReportData = async (): Promise<ReportData[] | null> => {
   }
 
   return [];
+}
+
+export const fetchEmployees = async (): Promise<Profile[] | null> => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, first_name, last_name, email')
+    .order('last_name', { ascending: true })
+    .order('first_name', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching employees:', error);
+    return null;
+  }
+
+  return data;
 }
