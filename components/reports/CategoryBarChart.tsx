@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { ReportData } from "@/lib/definitions";
 import { createClient } from "@/utils/supabase/client";
 
@@ -266,56 +267,12 @@ export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
            </div>
         )}
       </CardContent>
-      <CardFooter className="flex flex-col sm:flex-row justify-between items-center text-sm gap-4 pt-4 border-t mt-4">
-         <div className="w-full sm:w-auto text-center sm:text-left flex-grow">
+      <CardFooter className="flex flex-col sm:flex-row justify-between items-center text-sm gap-4 pt-4">
+         <div className="w-full sm:w-auto text-center sm:text-left flex-grow min-h-[20px]">
             {uploadMessage && <p className="text-green-600">{uploadMessage}</p>}
             {uploadError && <p className="text-red-600">{uploadError}</p>}
          </div>
-
-        <div className="flex gap-2 flex-shrink-0">
-        <div>
-          <h3 className="text-lg font-semibold mb-3">Historical Reports</h3>
-          {isLoadingList && <p>Loading report list...</p>}
-          {fetchListError && <p className="text-red-600">{fetchListError}</p>}
-
-          {!isLoadingList && !fetchListError && (
-            availableReports.length > 0 ? (
-              <div className="flex flex-col sm:flex-row items-center gap-4">
-                <div className="w-full sm:w-auto">
-                  <Label htmlFor="report-select">Select Report:</Label>
-                  <Select
-                      value={selectedReportName ?? ''}
-                      onValueChange={(value) => setSelectedReportName(value)}
-                      disabled={availableReports.length === 0}
-                    >
-                      <SelectTrigger id="report-select" className="w-full sm:w-[250px]">
-                        <SelectValue placeholder="Select a saved report" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableReports.map((report) => (
-                          <SelectItem key={report.id} value={report.name}>
-                            {report.name} ({(report.metadata?.size / 1024).toFixed(1)} KB)
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                </div>
-                <Button
-                    onClick={handleDownloadSelectedReport}
-                    disabled={!selectedReportName || isDownloadingSelected}
-                    variant="default"
-                    size="sm"
-                    className="w-full sm:w-auto"
-                >
-                    {isDownloadingSelected ? 'Downloading...' : 'Download Selected Report'}
-                </Button>
-                {downloadSelectedError && <p className="text-red-600 text-xs mt-1">{downloadSelectedError}</p>}
-              </div>
-            ) : (
-              <p className="text-muted-foreground">No historical reports found in storage.</p>
-            )
-          )}
-        </div>
+        <div className="flex flex-wrap gap-2 flex-shrink-0 justify-center sm:justify-end">
           <Button
             onClick={handleDownloadLiveDataCsv}
             disabled={reportData.length === 0 || loadingLiveData}
@@ -323,7 +280,7 @@ export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
             size="sm"
             title="Download the current live data shown in the chart"
           >
-            Download as CSV
+            Download Live CSV
           </Button>
           <Button
             onClick={handleUploadToStorage}
@@ -332,10 +289,58 @@ export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
             size="sm"
             title="Save the current live data to storage (overwrites if same day)"
           >
-            {isUploading ? 'Saving...' : 'Upload Live Report'}
+            {isUploading ? 'Saving...' : 'Save Live Report'}
           </Button>
         </div>
       </CardFooter>
+
+      <Separator className="my-6" />
+
+      <div className="px-4 pb-4">
+        <h3 className="text-lg font-semibold mb-4 text-center sm:text-left">Historical Reports</h3>
+        {isLoadingList && <p className="text-center sm:text-left">Loading report list...</p>}
+        {fetchListError && <p className="text-red-600 text-center sm:text-left">{fetchListError}</p>}
+
+        {!isLoadingList && !fetchListError && (
+          availableReports.length > 0 ? (
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
+              <div className="flex-grow w-full sm:w-auto">
+                 <Label htmlFor="report-select" className="mb-1 block text-sm font-medium text-gray-700">Select Report:</Label>
+                 <Select
+                    value={selectedReportName ?? ''}
+                    onValueChange={(value) => setSelectedReportName(value)}
+                    disabled={availableReports.length === 0}
+                  >
+                    <SelectTrigger id="report-select" className="w-full">
+                      <SelectValue placeholder="Select a saved report" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableReports.map((report) => (
+                        <SelectItem key={report.id ?? report.name} value={report.name}>
+                          {report.name} ({((report.metadata?.size ?? 0) / 1024).toFixed(1)} KB)
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+              </div>
+              <div className="w-full sm:w-auto flex-shrink-0 pt-1 sm:pt-5">
+                <Button
+                    onClick={handleDownloadSelectedReport}
+                    disabled={!selectedReportName || isDownloadingSelected}
+                    variant="default"
+                    size="sm"
+                    className="w-full"
+                >
+                    {isDownloadingSelected ? 'Downloading...' : 'Download Selected'}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-center sm:text-left">No historical reports found in storage.</p>
+          )
+        )}
+        {downloadSelectedError && <p className="text-red-600 text-xs mt-2 text-center sm:text-left">{downloadSelectedError}</p>}
+      </div>
     </Card>
   );
 }
