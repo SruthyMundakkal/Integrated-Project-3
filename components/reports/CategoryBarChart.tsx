@@ -22,19 +22,26 @@ interface ReportProps {
   user: User;
 }
 
-function generateCsv(data: ReportData[]): string {
+function generateCsv(data: ReportData[], dateRange: string): string {
   if (!data || data.length === 0) {
     return '';
   }
+
+  const dateRangeRow = `"Report Date Range:","${dateRange.replace(/"/g, '""')}"`;
+
   const headers = ['Category Name', 'Total Amount'];
-  const rows = data.map(item => [
-    `"${item.category_name.replace(/"/g, '""')}"`,
-    item.total_amount.toFixed(2)
-  ]);
+  const headerRow = headers.map(h => `"${h.replace(/"/g, '""')}"`).join(',');
+
+  const dataRows = data.map(item => [
+    `"${item.category_name.replace(/"/g, '""')}"`, // Escape double quotes
+    item.total_amount.toFixed(2) // Format amount
+  ].join(','));
+
 
   return [
-    headers.join(','),
-    ...rows.map(row => row.join(','))
+    dateRangeRow,
+    headerRow,
+    ...dataRows
   ].join('\n');
 }
 
@@ -93,7 +100,7 @@ export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
   }, []);
 
   const handleDownloadCsv = () => {
-    const csvString = generateCsv(reportData);
+    const csvString = generateCsv(reportData, dateRange);
     if (csvString) {
       const timestamp = new Date().toISOString().split('T')[0];
       downloadCsv(csvString, `claims-report-${timestamp}.csv`);
@@ -107,7 +114,7 @@ export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
     setUploadError(null);
     setIsUploading(true);
 
-    const csvString = generateCsv(reportData);
+    const csvString = generateCsv(reportData, dateRange);
     if (!csvString) {
       alert('No data available to upload.');
       setIsUploading(false);
