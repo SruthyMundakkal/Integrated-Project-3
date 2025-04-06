@@ -13,14 +13,13 @@ export interface Claim {
     receipt_url: string | null;
     submitted_by: string | null;
   
-  // Join data that may be added after fetching
   profiles?: {
-    email: string;
+    email?: string;
     first_name?: string;
     last_name?: string;
   };
   categories?: {
-    name: string;
+    name?: string;
   };
   reviewer?: {
     email: string;
@@ -33,4 +32,17 @@ export interface User {
   first_name?: string;
   last_name?: string;
   role: 'employee' | 'admin' | 'super_admin';
+}
+
+export interface ReportData {
+  category_id: string;
+  category_name: string;
+  total_amount: number;
+}
+
+export interface Profile {
+  id: string;
+  first_name: string;
+  last_name: string | null;
+  email: string;
 }

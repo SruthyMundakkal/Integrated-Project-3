@@ -7,7 +7,7 @@ import { User } from "@supabase/supabase-js";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-export default function AdminDashboard({ user }: { user: User }) {
+export default function AdminDashboard({ user, isAdmin }: { user: User, isAdmin: boolean }) {
   const supabase = createClient();
   const [claims, setClaims] = useState<Claim[]>([]);
   const [loading, setLoading] = useState(true);

@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation'
 export default async function Dashboard() {
   const supabase = await createClient()
   const { data } = await supabase.auth.getUser()
-  const user = data.user 
+  const user = data.user
   
   if (!user) {
     return redirect('/sign-in')
@@ -24,12 +24,13 @@ export default async function Dashboard() {
   }
   
   const userRole = profileData?.role || 'employee'
+  const isAdmin = userRole.toLowerCase() == 'admin' || userRole.toLowerCase() == 'superadmin'
   
   switch (userRole.toLowerCase()) {
     case 'admin':
-      return <AdminDashboard user={user} />
+      return <AdminDashboard user={user} isAdmin />
     case 'superadmin':
-      return <SuperAdminDashboard user={user} />
+      return <SuperAdminDashboard user={user} isAdmin />
     default:
       return <EmployeeDashboard user={user} />
   }
