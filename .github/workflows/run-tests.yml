@@ -31,6 +31,12 @@ jobs:
         
             - name: Verify Docker is running
               run: docker info
+
+            - name: Initialize Supabase DB
+              run: |
+                supabase init
+                supabase db start
+            
         
             - name: Run Supabase DB tests
               run: supabase test db --debug
