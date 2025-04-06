@@ -22,11 +22,9 @@ jobs:
                 cache: 'npm'
 
             - name: Install Supabase CLI
-              run: |
-                curl -sL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.deb -o supabase.deb
-                sudo apt-get update
-                sudo apt-get install -y ./supabase.deb
-                rm supabase.deb
+              uses: supabase/setup-cli@v1.5.0
+              with:
+                version: latest
 
             - name: Verify Supabase CLI installation
               run: supabase --version
