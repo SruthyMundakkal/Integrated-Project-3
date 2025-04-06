@@ -22,7 +22,12 @@ jobs:
                 cache: 'npm'
 
             - name: Install Supabase CLI
-              run: npm install --global supabase@latest
+              run: |
+                brew tap supabase/tap
+                brew install supabase
+
+            - name: Verify Supabase CLI installation
+              run: supabase --version
         
             - name: Verify Docker is running
               run: docker info
