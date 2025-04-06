@@ -34,12 +34,16 @@ jobs:
 
             - name: Initialize Supabase DB
               run: |
-                supabase init
+                supabase init --force
                 supabase db start
             
         
             - name: Run Supabase DB tests
               run: supabase test db --debug
+
+            - name: Stop Supabase and cleanup containers
+              if: always()
+              run: supabase stop --no-backup
 
             - name: Tests Passed
               if: success()
