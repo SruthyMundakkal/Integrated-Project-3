@@ -23,8 +23,10 @@ jobs:
 
             - name: Install Supabase CLI
               run: |
-                brew tap supabase/tap
-                brew install supabase
+                curl -sL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.deb -o supabase.deb
+                sudo apt-get update
+                sudo apt-get install -y ./supabase.deb
+                rm supabase.deb
 
             - name: Verify Supabase CLI installation
               run: supabase --version
