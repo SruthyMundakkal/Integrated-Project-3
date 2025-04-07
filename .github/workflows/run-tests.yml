@@ -1,0 +1,53 @@
+name: Run Tests
+
+on:
+    push:
+        branches:
+            - feature/testing
+    pull_request:
+        branches:
+            - main
+    
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4.2.2
+
+            - name: Setup Node.js Environment
+              uses: actions/setup-node@v4.3.0
+              with:
+                node-version: '23.10.0'
+                cache: 'npm'
+
+            - name: Install Supabase CLI
+              uses: supabase/setup-cli@v1.5.0
+              with:
+                version: latest
+
+            - name: Verify Supabase CLI installation
+              run: supabase --version
+        
+            - name: Verify Docker is running
+              run: docker info
+
+            - name: Initialize Supabase DB
+              run: |
+                supabase init --force
+                supabase db start
+            
+        
+            - name: Run Supabase DB tests
+              run: supabase test db --debug
+
+            - name: Stop Supabase and cleanup containers
+              if: always()
+              run: supabase stop --no-backup
+
+            - name: Tests Passed
+              if: success()
+              run: echo "All tests passed successfully!"
+
+
+# comment to test
