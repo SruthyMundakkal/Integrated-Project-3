@@ -1,23 +1,20 @@
 "use client";
 
 import { Claim } from "@/lib/definitions";
-import { createClient } from "@/utils/supabase/client";
+import { User } from "@supabase/supabase-js";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ClaimCard from "./ClaimCard";
 import ClaimForm from "./ClaimForm";
 import React from "react";
 
 interface ClaimListProps {
-  isAdmin?: boolean;
-  userId?: string;
+  isAdmin: boolean;
+  user: User;
+  claims: Array<Claim>;
 }
 
-export default function ClaimList({ isAdmin = false, userId }: ClaimListProps) {
-  const supabase = createClient();
-  const [claims, setClaims] = useState<Claim[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default function ClaimList({ isAdmin, user, claims = [] }: ClaimListProps) {
   const [filter, setFilter] = useState<string>("all");
   const [expandedClaimId, setExpandedClaimId] = useState<string | null>(null);
   const [showClaimForm, setShowClaimForm] = useState(false);
@@ -63,17 +60,9 @@ export default function ClaimList({ isAdmin = false, userId }: ClaimListProps) {
     setExpandedClaimId(expandedClaimId === claimId ? null : claimId);
   };
 
-  const filteredClaims = filter === "all" 
-    ? claims 
+  const filteredClaims = filter === "all"
+    ? claims
     : claims.filter(claim => claim.status === filter);
-
-  if (loading) {
-    return <div className="p-4 text-center">Loading claims...</div>;
-  }
-
-  if (error) {
-    return <div className="p-4 text-center text-destructive-foreground">{error}</div>;
-  }
 
   return (
     <div className="flex flex-col w-4xl items-center bg-background p-4 rounded-lg">
