@@ -1,0 +1,10 @@
+{
+    "entryPoints": ["./app", "./lib", "./components", "./utils"],
+    "out": "./docs",
+    "entryPointStrategy": "expand",
+    "tsconfig": "./tsconfig.json",
+    "name": "Employee Claim System Documentation",
+    "readme": "./README.md",
+    "excludePrivate": true,
+    "excludeExternals": true,
+}
