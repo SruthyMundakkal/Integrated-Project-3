@@ -5,7 +5,7 @@
     "build": "next build",
     "start": "next start",
     "docs:generate": "typedoc",
-    "docs:serve": "serve ./docs/api"
+    "docs:serve": "serve ./docs"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",
