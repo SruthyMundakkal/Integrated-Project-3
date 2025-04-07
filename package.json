@@ -3,7 +3,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "docs:generate": "typedoc",
+    "docs:serve": "serve ./docs/api"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",
@@ -39,6 +41,7 @@
     "tailwind-merge": "^3.0.2",
     "tailwindcss": "^4.0.17",
     "tailwindcss-animate": "^1.0.7",
+    "typedoc": "^0.28.2",
     "typescript": "5.8.2"
   }
 }
