@@ -19,43 +19,6 @@ export default function ClaimList({ isAdmin, user, claims = [] }: ClaimListProps
   const [expandedClaimId, setExpandedClaimId] = useState<string | null>(null);
   const [showClaimForm, setShowClaimForm] = useState(false);
 
-  useEffect(() => {
-    async function fetchClaims() {
-      try {
-        let query = supabase
-          .from('claims')
-          .select(`
-            *,
-            profiles:employee_id (email)
-          `)
-          .order('submitted_on', { ascending: false });
-
-        // If not admin, only fetch user's claims
-        if (!isAdmin && userId) {
-          query = query.eq('employee_id', userId);
-        }
-
-        const { data, error } = await query;
-          
-        if (error) throw error;
-        
-        const formattedData = (data || []).map(claim => ({
-          ...claim,
-          user_email: claim.profiles?.email || 'Unknown'
-        }));
-        
-        setClaims(formattedData);
-      } catch (err) {
-        console.error('Error fetching claims:', err);
-        setError('Failed to load claims');
-      } finally {
-        setLoading(false);
-      }
-    }
-    
-    fetchClaims();
-  }, [supabase, userId, isAdmin]);
-
   const toggleClaimExpansion = (claimId: string) => {
     setExpandedClaimId(expandedClaimId === claimId ? null : claimId);
   };
