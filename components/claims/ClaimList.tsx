@@ -1,28 +1,40 @@
 "use client";
 
-import { Claim } from "@/lib/definitions";
+import { Claim, ClaimListProps } from "@/lib/definitions";
 import { User } from "@supabase/supabase-js";
-import Link from "next/link";
-import { useState } from "react";
+import React, { useState } from "react";
 import ClaimCard from "./ClaimCard";
 import ClaimForm from "./ClaimForm";
-import React from "react";
 
-interface ClaimListProps {
-  isAdmin: boolean;
-  user: User;
-  claims: Array<Claim>;
-}
-
+/**
+ * ClaimList Component
+ * 
+ * Displays a filterable list of claims with options to view details and add new claims.
+ * The component includes filter tabs for viewing all claims or filtering by status (pending, 
+ * approved, denied). Users can toggle between viewing the claims list and adding new claims.
+ * 
+ * @param {ClaimListProps} props - Component props
+ * @param {boolean} props.isAdmin - Flag indicating whether the user has admin privileges
+ * @param {User} props.user - The currently authenticated user object
+ * @param {Array<Claim>} props.claims - Array of claim objects to be displayed
+ * 
+ * @returns A component for viewing and managing claims
+ */
 export default function ClaimList({ isAdmin, user, claims = [] }: ClaimListProps) {
   const [filter, setFilter] = useState<string>("all");
   const [expandedClaimId, setExpandedClaimId] = useState<string | null>(null);
   const [showClaimForm, setShowClaimForm] = useState(false);
 
+  /**
+   * Toggles the expansion state of a claim to show or hide its details
+   * 
+   * @param {string} claimId - The ID of the claim to toggle expansion for
+   */
   const toggleClaimExpansion = (claimId: string) => {
     setExpandedClaimId(expandedClaimId === claimId ? null : claimId);
   };
 
+  // Filter claims based on the selected status filter
   const filteredClaims = filter === "all"
     ? claims
     : claims.filter(claim => claim.status === filter);
@@ -131,8 +143,6 @@ export default function ClaimList({ isAdmin, user, claims = [] }: ClaimListProps
         )}
       </div>
       )}
-        {/* <ClaimForm/> */}
     </div>
-    
   );
 }

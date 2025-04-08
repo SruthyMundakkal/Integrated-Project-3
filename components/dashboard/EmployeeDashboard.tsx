@@ -6,6 +6,18 @@ import { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import ClaimList from "../claims/ClaimList";
 
+/**
+ * EmployeeDashboard Component
+ * 
+ *  A dashboard component for regular employees to view and manage their claims.
+ * Provides claims overview statistics and a claims list for the employee.
+ * 
+ * @param {Object} props - Component props
+ * @param {User} props.user - The currently authenticated user object
+ * @param {boolean} props.isAdmin - Flag indicating whether the user has admin privileges
+ * 
+ * @returns A dashboard interface tailored for regular employees
+ */
 export default function EmployeeDashboard({ user, isAdmin }: { user: User, isAdmin: boolean }) {
   
   const [claims, setClaims] = useState<Claim[]>([]);
@@ -13,6 +25,9 @@ export default function EmployeeDashboard({ user, isAdmin }: { user: User, isAdm
   const [error, setError] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<"claims" | "report">("claims");
 
+  /**
+   * Fetches all claims data when the component mounts or when user/isAdmin changes
+   */
   useEffect(() => {
     async function fetchClaims() {
       try {
@@ -38,10 +53,16 @@ export default function EmployeeDashboard({ user, isAdmin }: { user: User, isAdm
     return <div className="p-4 text-center text-destructive-foreground">{error}</div>;
   }
 
+  /**
+   * Sets the current view to display the claims list
+   */
   const showClaimList = () => {
     setCurrentView("claims");
   }
   
+  /**
+   * Sets the current view to display the category report
+   */
   const showReport = () => {
     setCurrentView("report");
   }

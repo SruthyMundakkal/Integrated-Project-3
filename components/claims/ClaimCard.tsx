@@ -8,7 +8,20 @@ import { useEffect, useState } from "react";
 
 const supabase = createClient();
 
-
+/**
+ * ClaimCard Component
+ * 
+ *  Displays detailed information about a specific claim and provides functionality
+ * for administrators to approve or deny claims. The component can be rendered in two modes:
+ * standard view or inline view (more compact display for use within tables).
+ * 
+ * @param {Object} props - Component props
+ * @param {string} props.claimId - The unique identifier of the claim to display
+ * @param {boolean} props.isAdmin - Flag indicating whether the user has admin privileges
+ * @param {boolean} props.isInlineView - Flag indicating whether to render in compact inline mode
+ * 
+ * @returns A card displaying claim details with optional admin controls
+ */
 export default function ClaimCard({ claimId, isAdmin = false, isInlineView = false }: { claimId: string; isAdmin?: boolean; isInlineView?: boolean; }) {
   const router = useRouter();
   const [claim, setClaim] = useState<Claim | null>(null);
@@ -17,6 +30,9 @@ export default function ClaimCard({ claimId, isAdmin = false, isInlineView = fal
   const [updating, setUpdating] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
+  /**
+   * Fetches the current authenticated user
+   */
   useEffect(() => {
     async function fetchUser() {
       const { data: { user } } = await supabase.auth.getUser();
@@ -25,6 +41,9 @@ export default function ClaimCard({ claimId, isAdmin = false, isInlineView = fal
     fetchUser();
   }, []);
   
+  /**
+   * Fetches claim details when the component mounts or when claimId changes
+   */
   useEffect(() => {
     async function fetchClaimDetails() {
       try {
@@ -52,6 +71,11 @@ export default function ClaimCard({ claimId, isAdmin = false, isInlineView = fal
     fetchClaimDetails();
   }, [claimId]);
 
+  /**
+   * Updates the status of a claim to approved or denied
+   * 
+   * @param {('approved'|'denied')} newStatus - The new status to set for the claim
+   */
   const handleUpdateStatus = async (newStatus: 'approved' | 'denied') => {
     if (!claim || !claim.id) {
       setError("Invalid claim data. Cannot update.");
