@@ -1,31 +1,24 @@
 "use client";
 
-import ClaimList from "@/components/claims/ClaimList";
+import { fetchAllClaimsData } from "@/lib/actions";
 import { Claim } from "@/lib/definitions";
-import { createClient } from "@/utils/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
+import ClaimList from "../claims/ClaimList";
 
-export default function EmployeeDashboard({ user }: { user: User }) {
-  const supabase = createClient();
+export default function EmployeeDashboard({ user, isAdmin }: { user: User, isAdmin: boolean }) {
+  
   const [claims, setClaims] = useState<Claim[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentView, setCurrentView] = useState<"claims" | "report">("claims");
 
   useEffect(() => {
     async function fetchClaims() {
       try {
-        let { data, error } = await supabase
-          .from('claims')
-          .select(`
-            *,
-            profiles:employee_id (email)
-          `)
-          .order('submitted_on', { ascending: false });
-          
-        if (error) throw error;
+        const allClaimsData = await fetchAllClaimsData(); // Call the function and await its result
         
-        setClaims(data || []);
+        setClaims(allClaimsData || []);
       } catch (err) {
         console.error('Error fetching claims:', err);
         setError('Failed to load claims');
@@ -35,8 +28,8 @@ export default function EmployeeDashboard({ user }: { user: User }) {
     }
     
     fetchClaims();
-  }, [supabase, user.id]);
-
+  }, [user.id, isAdmin]);
+  
   if (loading) {
     return <div className="p-4 text-center">Loading dashboard...</div>;
   }
@@ -45,12 +38,21 @@ export default function EmployeeDashboard({ user }: { user: User }) {
     return <div className="p-4 text-center text-destructive-foreground">{error}</div>;
   }
 
+  const showClaimList = () => {
+    setCurrentView("claims");
+  }
+  
+  const showReport = () => {
+    setCurrentView("report");
+  }
+
   return (
     <div className="p-6 flex flex-col items-center">
       <h1 className="text-2xl font-bold mb-6">Employee Dashboard</h1>
       <p className="mb-4">Welcome, {user.email}</p>
       
-      <div className="grid grid-cols-1 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        
         <div className="bg-muted p-4 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold mb-2 text-center">Claims Overview</h3>
           <div className="grid grid-cols-2 gap-2">
@@ -61,9 +63,19 @@ export default function EmployeeDashboard({ user }: { user: User }) {
           </div>
         </div>
       </div>
+
+      <button onClick={showClaimList} className="text-foreground hover:underline">
+        View Claims List
+      </button>
       
-      <div className="margin-auto min-w-md">
-        <ClaimList isAdmin={false} />
+      <div className="w-full max-w-4xl">
+        {currentView === 'claims' && (
+          <ClaimList 
+            isAdmin={isAdmin}
+            user={user}
+            claims={claims}
+          />
+        )}
       </div>
     </div>
   );
