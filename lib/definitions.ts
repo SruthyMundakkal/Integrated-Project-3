@@ -57,7 +57,7 @@ export interface User {
   /** Unique identifier for the user */
   id: string;
   /** Email address of the user */
-  email?: string | undefined; // Changed to match Supabase User type
+  email?: string | undefined;
   /** First name of the user (optional) */
   first_name?: string;
   /** Last name of the user (optional) */
