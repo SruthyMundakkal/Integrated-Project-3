@@ -114,43 +114,39 @@ export default function ClaimForm() {
     
         try {
             // Upload file to the claim-receipts bucket
+            const path = `${profileId}/${selectedFile.name}`;
             const { data, error: uploadError } = await supabase.storage
             .from("claim-receipts")
-            .upload(`${profileId}/${selectedFile.name}`, selectedFile);
+            .upload(path, selectedFile, { upsert: true });
     
             if (uploadError) {
-            throw uploadError;
+              throw uploadError;
             }
     
-            // Get the URL of the uploaded file
-            const fileUrl = `${supabase.storageUrl}/claim-receipts/${data?.path}`;
-    
-            // Insert claim data with receipt URL
-            const claimData = {
-            employee_id: profileId,
-            category_id: categories.find((category) => category.name === selectedCategory)?.id,
-            amount: Number(amount),
-            mileage: selectedCategory === "Travel" ? mileage : null,
-            start_location: selectedCategory === "Travel" ? startLocation : null,
-            end_location: selectedCategory === "Travel" ? endLocation : null,
-            status: "pending",  // Set the status to 'pending'
-            submitted_by: profileId,
-            receipt_url: fileUrl,  // Save the file URL in the claim
-            };
-    
-            const { error } = await supabase.from("claims").insert([claimData]);
-    
-            if (error) {
-            alert("Failed to submit claim: " + error.message);
-            } else {
-            alert("Claim submitted successfully!");
-            }
-        } catch (err: any) {
+            const { data: urlData } = await supabase.storage
+          .from("claim-receipts")
+          .getPublicUrl(path);
+
+            setReceiptUrl(urlData.publicUrl);
+          } catch (err: any) {
             console.error("File upload failed:", err.message);
             alert("File upload failed: " + err.message);
+          }
         }
-        }
-    };
+      };
+    
+      const resetForm = () => {
+        setSelectedCategory(null);
+        setMileage("");
+        setStartLocation("");
+        setEndLocation("");
+        setAmount("");
+        setDescription("");
+        setFile(null);
+        setReceiptUrl(null);
+      };
+      if (loading) return <div className="p-4 text-center">Loading...</div>;
+      if (error) return <div className="p-4 text-center text-red-500">{error}</div>;
 
   return (
     <Card className="w-full max-w-2xl mx-auto p-6">
@@ -161,7 +157,7 @@ export default function ClaimForm() {
         {/* Claim Type Selection */}
         <div className="flex items-center space-x-4">
           <Label htmlFor="claim-type" className="w-1/3">Claim Type</Label>
-          <Select className="w-2/3" onValueChange={setSelectedCategory}>
+          <Select onValueChange={setSelectedCategory}>
             <SelectTrigger id="claim-type">
               <SelectValue placeholder="Select claim type" />
             </SelectTrigger>
