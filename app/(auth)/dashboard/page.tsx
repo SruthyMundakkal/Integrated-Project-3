@@ -32,6 +32,6 @@ export default async function Dashboard() {
     case 'superadmin':
       return <SuperAdminDashboard user={user} isAdmin />
     default:
-      return <EmployeeDashboard user={user} />
+      return <EmployeeDashboard user={user} isAdmin />
   }
 }
