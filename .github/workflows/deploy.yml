@@ -1,0 +1,21 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: ["Run Tests"]  # Name of the testing workflow you want to depend on
+    types:
+      - completed  # The deployment will run only when the tests workflow is completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2  # This checks out your code
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v20  # Vercel deployment action
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}  # Use the Vercel token secret
+          vercel-args: '--prod'  # Optional, deploys to production, remove if not needed
+          # Deployment workflow in vercel
