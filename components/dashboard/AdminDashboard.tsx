@@ -72,7 +72,7 @@ export default function AdminDashboard({ user, isAdmin }: { user: User, isAdmin:
 
   return (
     <div className="p-6 flex flex-col items-center">
-      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+      <h1 className="text-2xl font-bold mb-6">Admin Dashboard Here</h1>
       <p className="mb-4">Welcome, {user.email}</p>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
