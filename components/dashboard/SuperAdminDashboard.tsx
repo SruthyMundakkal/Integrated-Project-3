@@ -9,6 +9,19 @@ import { useEffect, useState } from "react";
 import ClaimList from "../claims/ClaimList";
 import CategoryBarChart from "../reports/CategoryBarChart";
 
+/**
+ * SuperAdminDashboard Component
+ * 
+ *  A dashboard component for super administrators providing system-wide access and overview.
+ * Features include system administration links, claims overview statistics, and options to view claims 
+ * or category reports.
+ * 
+ * @param {Object} props - Component props
+ * @param {User} props.user - The currently authenticated user object
+ * @param {boolean} props.isAdmin - Flag indicating whether the user has admin privileges
+ * 
+ * @returns A dashboard interface with admin controls and data visualization for super administrators
+ */
 export default function SuperAdminDashboard({ user, isAdmin }: { user: User, isAdmin: boolean }) {
   
   const supabase = createClient();
@@ -17,6 +30,9 @@ export default function SuperAdminDashboard({ user, isAdmin }: { user: User, isA
   const [error, setError] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<"claims" | "report">("claims");
 
+  /**
+   * Fetches all claims data when the component mounts or when user/isAdmin changes
+   */
   useEffect(() => {
     async function fetchClaims() {
       try {
@@ -42,10 +58,16 @@ export default function SuperAdminDashboard({ user, isAdmin }: { user: User, isA
     return <div className="p-4 text-center text-destructive-foreground">{error}</div>;
   }
 
+  /**
+   * Sets the current view to display the claims list
+   */
   const showClaimList = () => {
     setCurrentView("claims");
   }
   
+  /**
+   * Sets the current view to display the category report
+   */
   const showReport = () => {
     setCurrentView("report");
   }

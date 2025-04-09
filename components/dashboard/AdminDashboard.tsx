@@ -8,6 +8,19 @@ import { useEffect, useState } from "react";
 import ClaimList from "../claims/ClaimList";
 import CategoryBarChart from "../reports/CategoryBarChart";
 
+/**
+ * AdminDashboard Component
+ * 
+ *  A dashboard component for administrators with capabilities to manage system data
+ * and view reports. Provides system administration links, claims overview statistics, and options
+ * to view claims list or category reports.
+ * 
+ * @param {Object} props - Component props
+ * @param {User} props.user - The currently authenticated user object
+ * @param {boolean} props.isAdmin - Flag indicating whether the user has admin privileges
+ * 
+ * @returns A dashboard interface with admin controls and data visualization
+ */
 export default function AdminDashboard({ user, isAdmin }: { user: User, isAdmin: boolean }) {
   
   const [claims, setClaims] = useState<Claim[]>([]);
@@ -15,6 +28,9 @@ export default function AdminDashboard({ user, isAdmin }: { user: User, isAdmin:
   const [error, setError] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<"claims" | "report">("claims");
 
+  /**
+   * Fetches all claims data when the component mounts or when user/isAdmin changes
+   */
   useEffect(() => {
     async function fetchClaims() {
       try {
@@ -40,10 +56,16 @@ export default function AdminDashboard({ user, isAdmin }: { user: User, isAdmin:
     return <div className="p-4 text-center text-destructive-foreground">{error}</div>;
   }
 
+  /**
+   * Sets the current view to display the claims list
+   */
   const showClaimList = () => {
     setCurrentView("claims");
   }
   
+  /**
+   * Sets the current view to display the category report
+   */
   const showReport = () => {
     setCurrentView("report");
   }

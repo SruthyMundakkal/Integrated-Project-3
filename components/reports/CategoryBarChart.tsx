@@ -1,6 +1,7 @@
 "use client"
 
 import { fetchEmployees, fetchReportData } from "@/lib/actions";
+import { Profile, ReportData, ReportProps, StorageFileObject } from "@/lib/definitions";
 import { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -17,23 +18,16 @@ import {
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Profile, ReportData } from "@/lib/definitions";
 import { createClient } from "@/utils/supabase/client";
 
-interface ReportProps {
-  isAdmin: boolean;
-  user: User;
-}
-
-interface StorageFileObject {
-  name: string;
-  id: string | null;
-  updated_at: string | null;
-  created_at: string | null;
-  last_accessed_at: string | null;
-  metadata: Record<string, any> | null;
-}
-
+/**
+ * Generates a CSV string from report data
+ * 
+ * @param {ReportData[]} data - The report data to convert to CSV
+ * @param {string} dateRange - The date range string to include in the CSV header
+ * @param {string} [employeeName] - Optional employee name for filtered reports
+ * @returns {string} A formatted CSV string containing the report data
+ */
 function generateCsv(data: ReportData[], dateRange: string, employeeName?: string): string {
     if (!data || data.length === 0) {
         return '';
@@ -49,6 +43,13 @@ function generateCsv(data: ReportData[], dateRange: string, employeeName?: strin
     return [dateRangeRow, employeeRow, headerRow, ...dataRows].join('\n');
 }
 
+/**
+ * Downloads a file to the user's device
+ * 
+ * @param {string | Blob} content - The content to download as a file
+ * @param {string} filename - The name to give to the downloaded file
+ * @param {string} [type='text/csv;charset=utf-8;'] - The MIME type of the file
+ */
 function downloadFile(content: string | Blob, filename: string, type = 'text/csv;charset=utf-8;') {
   const blob = content instanceof Blob ? content : new Blob([content], { type });
   const link = document.createElement('a');
@@ -69,6 +70,19 @@ function downloadFile(content: string | Blob, filename: string, type = 'text/csv
 const REPORTS_STORAGE_PATH = 'private/claims-reports/';
 const ALL_EMPLOYEES_VALUE = "all";
 
+/**
+ * CategoryBarChart Component
+ * 
+ *  A data visualization component that displays claim totals per category as a bar chart.
+ * Allows filtering by employee, downloading reports as CSV, and managing saved reports.
+ * Administrators can save reports to storage for future reference.
+ * 
+ * @param {ReportProps} props - Component props
+ * @param {boolean} props.isAdmin - Flag indicating whether the user has admin privileges
+ * @param {User} props.user - The currently authenticated user object
+ * 
+ * @returns A data visualization component with interactive controls for report management
+ */
 export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
   const [reportData, setReportData] = useState<ReportData[]>([]);
   const [loadingLiveData, setLoadingLiveData] = useState(true);
@@ -100,6 +114,9 @@ export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
   const endMonth = today.toLocaleString('default', { month: 'long' });
   const dateRange = `${startMonth} ${sixMonthsAgo.getFullYear()} - ${endMonth} ${today.getFullYear()}`;
 
+  /**
+   * Loads available reports from storage
+   */
   async function loadAvailableReports() {
       setIsLoadingList(true);
       setFetchListError(null);
@@ -122,6 +139,11 @@ export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
       }
   }
 
+  /**
+   * Loads report data filtered by employee ID
+   * 
+   * @param {string | null} employeeFilterId - Optional employee ID to filter the report data
+   */
    async function loadReportData(employeeFilterId: string | null) {
       setLoadingLiveData(true);
       setFetchLiveError(false);
@@ -136,6 +158,9 @@ export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
       }
   }
 
+  /**
+   * Loads the list of employees from the database
+   */
   async function loadEmployees() {
       setLoadingEmployees(true);
       setFetchEmployeesError(false);
@@ -160,6 +185,9 @@ export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
       loadReportData(filterId);
   }, [selectedEmployeeId]);
 
+  /**
+   * Handles uploading the current report data to storage
+   */
   const handleUploadToStorage = async () => {
     setUploadMessage(null);
     setUploadError(null);
@@ -196,6 +224,9 @@ export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
     }
   };
 
+  /**
+   * Handles downloading the current live data as a CSV file
+   */
   const handleDownloadLiveDataCsv = () => {
     const currentEmployee = employees.find(e => e.id === selectedEmployeeId);
     const employeeName = currentEmployee ? `${currentEmployee.first_name} ${currentEmployee.last_name ?? ''}`.trim() : undefined;
@@ -210,6 +241,9 @@ export default function CategoryBarChart({ isAdmin, user }: ReportProps) {
     }
   };
 
+  /**
+   * Handles downloading a selected report from storage
+   */
   const handleDownloadSelectedReport = async () => {
     if (!selectedReportName) {
       alert("Please select a report to download."); return;

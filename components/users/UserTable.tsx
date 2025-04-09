@@ -1,27 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { User } from "@/lib/definitions";
 import { createClient } from "@/utils/supabase/client";
+import React, { useEffect, useState } from "react";
 import EditUserCard from "./UserEditCard"; // Adjust this import path if needed
-import Link from "next/link";
-import React from "react";
-import type { User as UserType } from "@/lib/definitions";
-
-interface User {
-  id: string;
-  first_name: string;
-  last_name: string;
-  role: string;
-  email: string;
-}
 
 export default function UserList() {
-    type User = UserType;
   const supabase = createClient();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expandedUserId, setExpandedUserId] = useState<string | null>(null); // ✅ This is what was missing
+  const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchUsers() {
@@ -39,7 +28,6 @@ export default function UserList() {
     fetchUsers();
   }, [supabase]);
 
-  // ✅ Properly toggle expanded user row
   const toggleUserExpansion = (id: string) => {
     setExpandedUserId(prev => (prev === id ? null : id));
   };
