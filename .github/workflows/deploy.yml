@@ -19,3 +19,4 @@ jobs:
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-args: '--prod --yes'
+          #deploy file
